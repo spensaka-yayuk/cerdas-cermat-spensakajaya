@@ -21,10 +21,10 @@
         .btn-logout { background-color: #6c757d; color: white; border: none; padding: 8px 14px; font-size: 13px; border-radius: 6px; cursor: pointer; }
         
         /* LOGIN HERO */
-        .login-hero { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef; text-align: center; }
-        .login-logo { max-height: 110px; margin: 0 auto 12px auto; display: block; object-fit: contain; }
+        .login-hero { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef; }
+        .login-logo { max-height: 100px; margin-bottom: 12px; }
         .login-school-name { font-size: 22px; font-weight: bold; color: #2c3e50; margin: 0; }
-        .login-event-name { font-size: 15px; font-weight: 600; color: #007bff; margin-top: 8px; line-height: 1.4; }
+        .login-event-name { font-size: 16px; font-weight: 600; color: #007bff; margin-top: 5px; }
 
         /* FORM INPUT */
         input[type="text"], input[type="password"] { padding: 12px; width: 85%; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 12px; }
@@ -102,8 +102,8 @@
         <div class="school-header">
             <img id="imgLogo" class="school-logo" src="" alt="Logo">
             <div>
-                <h1 id="txtNamaSekolah" class="school-title">SMP NEGERI 1 KANDAT</h1>
-                <div id="txtNamaKegiatan" class="event-title">HARI SANTRI 2026 - SPENSAKA CAKAP (CERDAS, AKTIF, KREATIF, AGAMIS, PRESTASI)</div>
+                <h1 id="txtNamaSekolah" class="school-title"></h1>
+                <div id="txtNamaKegiatan" class="event-title"></div>
             </div>
         </div>
         <button class="btn-logout" onclick="logout()">🚪 Logout</button>
@@ -113,12 +113,12 @@
     <div class="card" id="loginCard">
         <div class="login-hero">
             <img id="loginImgLogo" class="login-logo" src="" alt="Logo Sekolah" style="display:none;">
-            <h2 id="loginTxtSekolah" class="login-school-name">SMP NEGERI 1 KANDAT</h2>
-            <div id="loginTxtKegiatan" class="login-event-name">HARI SANTRI 2026 - SPENSAKA CAKAP (CERDAS, AKTIF, KREATIF, AGAMIS, PRESTASI)</div>
+            <h2 id="loginTxtSekolah" class="login-school-name">Memuat Data...</h2>
+            <div id="loginTxtKegiatan" class="login-event-name"></div>
         </div>
 
         <p style="color:#6c757d; margin-bottom: 20px;">Masukkan Username dan Password Anda</p>
-        <input type="text" id="usernameInput" placeholder="Username (misal: satu / monitor1 / admin)">
+        <input type="text" id="usernameInput" placeholder="Username (misal: kelompok1 / monitor1 / admin)">
         <br>
         <input type="password" id="passwordInput" placeholder="Password">
         <br>
@@ -175,8 +175,8 @@
         </div>
         <div class="monitor-header">
             <img id="monitorImgLogo" class="monitor-logo" src="" alt="Logo Sekolah">
-            <div id="monitorTxtSekolah" class="monitor-school">SMP NEGERI 1 KANDAT</div>
-            <div id="monitorTxtKegiatan" class="monitor-event">HARI SANTRI 2026 - SPENSAKA CAKAP (CERDAS, AKTIF, KREATIF, AGAMIS, PRESTASI)</div>
+            <div id="monitorTxtSekolah" class="monitor-school"></div>
+            <div id="monitorTxtKegiatan" class="monitor-event"></div>
         </div>
         <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.3); width: 85%;">
         
@@ -192,7 +192,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbz5a_9zYbE5Q23M8HzvQrJsxibU26eLKw2vWvvr9vPK6mB2XVUThzKMXDR5y8pbUSHN/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbydjOsxHtWDKbUjMyz-dyaFUDQKW8vy5A8wCguvXpA1i6I3g40tF7rLByX-CgS5-K2vKg/exec";
 
     let activeUsername = '';
     let activeSessionId = '';
@@ -203,46 +203,23 @@
     let isPollingActive = false;
     let lastStatusBel = 'OPEN';
 
-    // FUNGSI PEMANAS (WARM-UP) AUDIO CONTEXT KHUSUS IOS & ANDROID
-    function unlockMobileAudio() {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (AudioCtx) {
-            if (!window.globalAudioCtx || window.globalAudioCtx.state === 'closed') {
-                window.globalAudioCtx = new AudioCtx();
-            }
-            if (window.globalAudioCtx.state === 'suspended') {
-                window.globalAudioCtx.resume();
-            }
-            
-            try {
-                const buffer = window.globalAudioCtx.createBuffer(1, 1, 22050);
-                const source = window.globalAudioCtx.createBufferSource();
-                source.buffer = buffer;
-                source.connect(window.globalAudioCtx.destination);
-                source.start(0);
-            } catch(e) {}
-        }
-    }
-
-    document.addEventListener('touchstart', unlockMobileAudio, { once: true, passive: true });
-    document.addEventListener('click', unlockMobileAudio, { once: true });
-
     function bunyikanSuaraBel(groupIndex) {
         try {
-            unlockMobileAudio();
-            const ctx = window.globalAudioCtx;
-            if (!ctx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
 
+            // Frekuensi nada unik dari Kelompok 1 - 9
             const frekuensiMap = [
-                { f1: 280, f2: 560 },
-                { f1: 330, f2: 660 },
-                { f1: 380, f2: 760 },
-                { f1: 430, f2: 860 },
-                { f1: 480, f2: 960 },
-                { f1: 530, f2: 1060 },
-                { f1: 580, f2: 1160 },
-                { f1: 630, f2: 1260 },
-                { f1: 680, f2: 1360 }
+                { f1: 280, f2: 560 }, // K1
+                { f1: 330, f2: 660 }, // K2
+                { f1: 380, f2: 760 }, // K3
+                { f1: 430, f2: 860 }, // K4
+                { f1: 480, f2: 960 }, // K5
+                { f1: 530, f2: 1060 },// K6
+                { f1: 580, f2: 1160 },// K7
+                { f1: 630, f2: 1260 },// K8
+                { f1: 680, f2: 1360 } // K9
             ];
 
             const idx = Math.max(0, Math.min(8, (parseInt(groupIndex, 10) || 1) - 1));
@@ -252,8 +229,8 @@
 
             const masterGain = ctx.createGain();
             masterGain.gain.setValueAtTime(0, now);
-            masterGain.gain.linearRampToValueAtTime(1.0, now + 0.01);
-            masterGain.gain.setValueAtTime(1.0, now + duration - 0.05);
+            masterGain.gain.linearRampToValueAtTime(0.9, now + 0.01);
+            masterGain.gain.setValueAtTime(0.9, now + duration - 0.05);
             masterGain.gain.linearRampToValueAtTime(0.001, now + duration);
             masterGain.connect(ctx.destination);
 
@@ -266,12 +243,12 @@
             osc2.frequency.setValueAtTime(freq.f2, now);
 
             const gain1 = ctx.createGain();
-            gain1.gain.setValueAtTime(0.7, now);
+            gain1.gain.setValueAtTime(0.65, now);
             osc1.connect(gain1);
             gain1.connect(masterGain);
 
             const gain2 = ctx.createGain();
-            gain2.gain.setValueAtTime(0.4, now);
+            gain2.gain.setValueAtTime(0.35, now);
             osc2.connect(gain2);
             gain2.connect(masterGain);
 
@@ -289,41 +266,29 @@
         fetch(API_URL + '?action=getConfig&_t=' + Date.now())
             .then(res => res.json())
             .then(config => {
-                if (config) {
-                    if (config.namaSekolah) {
-                        document.getElementById('loginTxtSekolah').innerText = config.namaSekolah;
-                        document.getElementById('txtNamaSekolah').innerText = config.namaSekolah;
-                        document.getElementById('monitorTxtSekolah').innerText = config.namaSekolah;
-                    }
-                    if (config.namaKegiatan) {
-                        document.getElementById('loginTxtKegiatan').innerText = config.namaKegiatan;
-                        document.getElementById('txtNamaKegiatan').innerText = config.namaKegiatan;
-                        document.getElementById('monitorTxtKegiatan').innerText = config.namaKegiatan;
-                    }
-                    if (config.urlLogo) {
-                        const imgLogin = document.getElementById('loginImgLogo');
-                        imgLogin.src = config.urlLogo;
-                        imgLogin.style.display = 'block';
-
-                        document.getElementById('imgLogo').src = config.urlLogo;
-                        document.getElementById('monitorImgLogo').src = config.urlLogo;
+                if(config) {
+                    document.getElementById('loginTxtSekolah').innerText = config.namaSekolah || 'SMP NEGERI 1 KANDAT';
+                    document.getElementById('loginTxtKegiatan').innerText = config.namaKegiatan || 'CERDAS CERMAT';
+                    if(config.urlLogo) {
+                        const img = document.getElementById('loginImgLogo');
+                        img.src = config.urlLogo;
+                        img.style.display = 'inline-block';
                     }
                 }
             })
             .catch(err => {
-                console.log('Menggunakan konfigurasi default HTML');
+                document.getElementById('loginTxtSekolah').innerText = 'SMP NEGERI 1 KANDAT';
+                document.getElementById('loginTxtKegiatan').innerText = 'CERDAS CERMAT';
             });
     };
 
     function login() {
-        unlockMobileAudio();
         const user = document.getElementById('usernameInput').value;
         const pass = document.getElementById('passwordInput').value;
         document.getElementById('loginError').innerText = 'Memeriksa...';
 
         fetch(API_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'login', username: user, password: pass })
         })
         .then(res => res.json())
@@ -383,7 +348,6 @@
         
         fetch(API_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'logout', username: activeUsername, sessionId: activeSessionId })
         });
 
@@ -408,8 +372,6 @@
     }
 
     function prosesTekanBel() {
-        bunyikanSuaraBel(userGroupIndex);
-
         const btn = document.getElementById('tombolBel');
         const statusBox = document.getElementById('statusBox');
         const appBulb = document.getElementById('appBulb');
@@ -422,7 +384,6 @@
 
         fetch(API_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'tekanBel', kelompok: currentGroup, groupIndex: userGroupIndex })
         }).then(() => {
             triggerInstantCheck();
@@ -495,6 +456,7 @@
                 }
             }
 
+            // RESPON LAMPU MONITOR SKOR DENGAN PEMADANAN INDEKS & NAMA
             if (userRole === 'MONITOR') {
                 const myGroup = res.daftarPoin.find(x => x.index === userGroupIndex);
                 if (myGroup) {
@@ -568,7 +530,6 @@
     function koreksiPoin(nama, groupIndex, delta) {
         fetch(API_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'ubahPoin', kelompok: nama, groupIndex: groupIndex, delta: delta })
         }).then(() => triggerInstantCheck());
     }
@@ -580,7 +541,6 @@
             if (!isNaN(skorAngka)) {
                 fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: 'setSkor', kelompok: nama, groupIndex: groupIndex, skorBaru: skorAngka })
                 }).then(() => triggerInstantCheck());
             }
@@ -590,7 +550,6 @@
     function prosesResetBel() {
         fetch(API_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'resetBel' })
         }).then(() => triggerInstantCheck());
     }
@@ -599,7 +558,6 @@
         if (confirm('Apakah Anda yakin ingin mereset seluruh skor kelompok menjadi 0?')) {
             fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: 'resetSemuaPoin' })
             }).then(() => triggerInstantCheck());
         }
