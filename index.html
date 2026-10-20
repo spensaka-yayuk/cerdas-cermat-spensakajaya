@@ -118,7 +118,7 @@
         </div>
 
         <p style="color:#6c757d; margin-bottom: 20px;">Masukkan Username dan Password Anda</p>
-        <input type="text" id="usernameInput" placeholder="Username (misal: kelompok1 / monitor1 / admin)">
+        <input type="text" id="usernameInput" placeholder="Username (misal: satu / monitor1 / admin)">
         <br>
         <input type="password" id="passwordInput" placeholder="Password">
         <br>
@@ -192,7 +192,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbydjOsxHtWDKbUjMyz-dyaFUDQKW8vy5A8wCguvXpA1i6I3g40tF7rLByX-CgS5-K2vKg/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbz5a_9zYbE5Q23M8HzvQrJsxibU26eLKw2vWvvr9vPK6mB2XVUThzKMXDR5y8pbUSHN/exec";
 
     let activeUsername = '';
     let activeSessionId = '';
@@ -203,23 +203,45 @@
     let isPollingActive = false;
     let lastStatusBel = 'OPEN';
 
+    // FUNGSI MENGAKTIFKAN AUDIO BROWSER HP (ANDROID & IOS)
+    function unlockMobileAudio() {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+            if (!window.globalAudioCtx) {
+                window.globalAudioCtx = new AudioCtx();
+            }
+            if (window.globalAudioCtx.state === 'suspended') {
+                window.globalAudioCtx.resume();
+            }
+        }
+    }
+
+    document.addEventListener('touchstart', unlockMobileAudio, { once: true });
+    document.addEventListener('click', unlockMobileAudio, { once: true });
+
     function bunyikanSuaraBel(groupIndex) {
         try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            const ctx = new AudioContext();
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
 
-            // Frekuensi nada unik dari Kelompok 1 - 9
+            if (!window.globalAudioCtx || window.globalAudioCtx.state === 'closed') {
+                window.globalAudioCtx = new AudioCtx();
+            }
+            const ctx = window.globalAudioCtx;
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+
             const frekuensiMap = [
-                { f1: 280, f2: 560 }, // K1
-                { f1: 330, f2: 660 }, // K2
-                { f1: 380, f2: 760 }, // K3
-                { f1: 430, f2: 860 }, // K4
-                { f1: 480, f2: 960 }, // K5
-                { f1: 530, f2: 1060 },// K6
-                { f1: 580, f2: 1160 },// K7
-                { f1: 630, f2: 1260 },// K8
-                { f1: 680, f2: 1360 } // K9
+                { f1: 280, f2: 560 },
+                { f1: 330, f2: 660 },
+                { f1: 380, f2: 760 },
+                { f1: 430, f2: 860 },
+                { f1: 480, f2: 960 },
+                { f1: 530, f2: 1060 },
+                { f1: 580, f2: 1160 },
+                { f1: 630, f2: 1260 },
+                { f1: 680, f2: 1360 }
             ];
 
             const idx = Math.max(0, Math.min(8, (parseInt(groupIndex, 10) || 1) - 1));
@@ -229,8 +251,8 @@
 
             const masterGain = ctx.createGain();
             masterGain.gain.setValueAtTime(0, now);
-            masterGain.gain.linearRampToValueAtTime(0.9, now + 0.01);
-            masterGain.gain.setValueAtTime(0.9, now + duration - 0.05);
+            masterGain.gain.linearRampToValueAtTime(1.0, now + 0.01);
+            masterGain.gain.setValueAtTime(1.0, now + duration - 0.05);
             masterGain.gain.linearRampToValueAtTime(0.001, now + duration);
             masterGain.connect(ctx.destination);
 
@@ -243,12 +265,12 @@
             osc2.frequency.setValueAtTime(freq.f2, now);
 
             const gain1 = ctx.createGain();
-            gain1.gain.setValueAtTime(0.65, now);
+            gain1.gain.setValueAtTime(0.7, now);
             osc1.connect(gain1);
             gain1.connect(masterGain);
 
             const gain2 = ctx.createGain();
-            gain2.gain.setValueAtTime(0.35, now);
+            gain2.gain.setValueAtTime(0.4, now);
             osc2.connect(gain2);
             gain2.connect(masterGain);
 
@@ -283,6 +305,7 @@
     };
 
     function login() {
+        unlockMobileAudio();
         const user = document.getElementById('usernameInput').value;
         const pass = document.getElementById('passwordInput').value;
         document.getElementById('loginError').innerText = 'Memeriksa...';
@@ -372,6 +395,8 @@
     }
 
     function prosesTekanBel() {
+        unlockMobileAudio();
+
         const btn = document.getElementById('tombolBel');
         const statusBox = document.getElementById('statusBox');
         const appBulb = document.getElementById('appBulb');
@@ -381,6 +406,9 @@
         statusBox.innerText = '💡 MENEKAN BEL...';
         statusBox.style.backgroundColor = '#d4edda';
         statusBox.style.color = '#155724';
+
+        // BUNYIKAN BEL DI HP PESERTA SECARA INSTAN
+        bunyikanSuaraBel(userGroupIndex);
 
         fetch(API_URL, {
             method: 'POST',
@@ -456,7 +484,6 @@
                 }
             }
 
-            // RESPON LAMPU MONITOR SKOR DENGAN PEMADANAN INDEKS & NAMA
             if (userRole === 'MONITOR') {
                 const myGroup = res.daftarPoin.find(x => x.index === userGroupIndex);
                 if (myGroup) {
